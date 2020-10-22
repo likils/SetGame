@@ -14,6 +14,7 @@
 		2410DE64253E1B0D009D9DE6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2410DE62253E1B0D009D9DE6 /* LaunchScreen.storyboard */; };
 		2472CAFC253ECF3F001615F4 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2472CAFB253ECF3F001615F4 /* Card.swift */; };
 		2472CAFE253ED656001615F4 /* SetGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2472CAFD253ED656001615F4 /* SetGame.swift */; };
+		24BE954C25415DC40097D9D8 /* MainStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BE954B25415DC40097D9D8 /* MainStackView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		2410DE65253E1B0D009D9DE6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2472CAFB253ECF3F001615F4 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		2472CAFD253ED656001615F4 /* SetGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetGame.swift; sourceTree = "<group>"; };
+		24BE954B25415DC40097D9D8 /* MainStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainStackView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +65,7 @@
 				2472CAFB253ECF3F001615F4 /* Card.swift */,
 				2472CAFD253ED656001615F4 /* SetGame.swift */,
 				2410DE5B253E1B07009D9DE6 /* ViewController.swift */,
+				24BE954B25415DC40097D9D8 /* MainStackView.swift */,
 				2410DE60253E1B0D009D9DE6 /* Assets.xcassets */,
 				2410DE62253E1B0D009D9DE6 /* LaunchScreen.storyboard */,
 				2410DE65253E1B0D009D9DE6 /* Info.plist */,
@@ -140,6 +143,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				24BE954C25415DC40097D9D8 /* MainStackView.swift in Sources */,
 				2410DE5C253E1B07009D9DE6 /* ViewController.swift in Sources */,
 				2410DE58253E1B07009D9DE6 /* AppDelegate.swift in Sources */,
 				2472CAFE253ED656001615F4 /* SetGame.swift in Sources */,
