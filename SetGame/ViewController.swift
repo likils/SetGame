@@ -42,8 +42,9 @@ class ViewController: UIViewController {
         totalScore = 0
         selectedCardTags.removeAll()
         mainView.hideExtraCards()
+        navigationItem.rightBarButtonItem?.isEnabled = true
         createCardPictures()
-        mainView.cards.forEach { if !$0.isHidden { drawNewCard($0) } }
+        mainView.cards.forEach { $0.isEnabled = true; if !$0.isHidden { drawNewCard($0) } }
     }
     
     private func createCardPictures() {
@@ -149,7 +150,9 @@ class ViewController: UIViewController {
         // TODO: Animate matching
         if itemCountMatching && shapeMatching && colorMatching && solidMatching {
             drawCardBorderColor(#colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1))
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [unowned self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
+                self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
+                self.selectedCardTags.removeSubrange(3...)
                 if !self.mainView.hStacks[4].isHidden {
                     self.moveExtraCards()
                 } else if !self.cardPictures.isEmpty {
@@ -165,13 +168,14 @@ class ViewController: UIViewController {
                         card.isEnabled = false
                         card.layer.borderColor = UIColor.clear.cgColor
                     }
+                    self.navigationItem.rightBarButtonItem?.isEnabled = false
                 }
                 self.totalScore += 1
                 self.selectedCardTags.removeAll()
             }
         } else {
             drawCardBorderColor(#colorLiteral(red: 0.8078431487, green: 0.02745098062, blue: 0.3333333433, alpha: 1))
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [unowned self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
                 self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
                 self.selectedCardTags.removeAll()
             }
@@ -180,7 +184,6 @@ class ViewController: UIViewController {
     
     // MARK: - Moving extra cards after matching
     private func moveExtraCards() {
-        drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
         if !mainView.hStacks[7].isHidden {
             removeCardsFromStackAtIndex(7)
         } else if !mainView.hStacks[6].isHidden {
@@ -194,21 +197,13 @@ class ViewController: UIViewController {
     }
     
     private func removeCardsFromStackAtIndex(_ index: Int) {
-        let arrayOfCardTags = mainView.hStacks[index].arrangedSubviews.compactMap{ $0.tag }
-        let movedCards = arrayOfCardTags.filter{!selectedCardTags.contains($0)}
-        let replacedCards = selectedCardTags.filter{!arrayOfCardTags.contains($0)}
-        
-        if movedCards.count == 1 {
-            let movedCard = view.viewWithTag(movedCards.first!) as! UIButton
-            let replacedCard = view.viewWithTag(replacedCards.first!) as! UIButton
+        let cardTagsInStack = mainView.hStacks[index].arrangedSubviews.compactMap{$0.tag}
+        let movedCards = cardTagsInStack.filter{!selectedCardTags.contains($0)}
+        let replacedCards = selectedCardTags.filter{!cardTagsInStack.contains($0)}
+        for index in 0..<movedCards.count {
+            let movedCard = view.viewWithTag(movedCards[index]) as! UIButton
+            let replacedCard = view.viewWithTag(replacedCards[index]) as! UIButton
             replacedCard.setAttributedTitle(movedCard.currentAttributedTitle, for: .normal)
-        } else if movedCards.count == 2 {
-            let movedCard1 = view.viewWithTag(movedCards.first!) as! UIButton
-            let replacedCard1 = view.viewWithTag(replacedCards.first!) as! UIButton
-            replacedCard1.setAttributedTitle(movedCard1.currentAttributedTitle, for: .normal)
-            let movedCard2 = view.viewWithTag(movedCards[1]) as! UIButton
-            let replacedCard2 = view.viewWithTag(replacedCards[1]) as! UIButton
-            replacedCard2.setAttributedTitle(movedCard2.currentAttributedTitle, for: .normal)
         }
         mainView.hStacks[index].isHidden = true
     }
