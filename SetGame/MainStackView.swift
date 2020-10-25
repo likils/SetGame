@@ -10,9 +10,6 @@ import UIKit
 
 class MainStackView: UIStackView {
     
-    private var cardTag = 100
-    private var hStackTag = 10
-    
     private(set) var cards = [UIButton]()
     private(set) var hStacks = [UIStackView]()
     
@@ -20,8 +17,6 @@ class MainStackView: UIStackView {
     private var card: UIButton {
         let card = UIButton()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.tag = cardTag
-        cardTag += 1
         card.titleLabel?.lineBreakMode = NSLineBreakMode.byWordWrapping
         card.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         card.layer.borderWidth = 3.0
@@ -33,8 +28,6 @@ class MainStackView: UIStackView {
     private var hStack: UIStackView {
         let stackView = UIStackView()
         stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.tag = hStackTag
-        hStackTag += 1
         stackView.axis = .horizontal
         stackView.alignment = .fill
         stackView.distribution = .fillEqually
