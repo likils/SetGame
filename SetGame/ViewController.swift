@@ -39,7 +39,7 @@ class ViewController: UIViewController {
         let cheatButton = UIBarButtonItem(title: "Find 3 cards", style: .done, target: self, action: #selector(cheat))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         toolbarItems = [spacer, cheatButton, spacer]
-        
+        createCardPictures()
         createNewGame()
     }
     
@@ -47,11 +47,13 @@ class ViewController: UIViewController {
     @objc func createNewGame() {
         totalScore = 0
         selectedCardTags.removeAll()
+        cardTags.removeAll()
         mainView.hideExtraCards()
         navigationItem.rightBarButtonItem?.isEnabled = true
         toolbarItems![1].isEnabled = true
-        createCardPictures()
-        mainView.cards.forEach { 
+        cardPictureByTag.keys.forEach{cardTags.append($0)}
+        cardTags.shuffle()
+        mainView.cards.forEach {
             $0.isEnabled = true
             $0.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
             if !$0.isHidden { drawNewCard($0) }
@@ -59,8 +61,6 @@ class ViewController: UIViewController {
     }
     
     private func createCardPictures() {
-        cardTags.removeAll(keepingCapacity: true)
-        cardPictureByTag.removeAll(keepingCapacity: true)
         let shapes = ["●", "▲", "■", "●\n●", "▲\n▲", "■\n■", "●\n●\n●", "▲\n▲\n▲", "■\n■\n■"]
         let colors = [#colorLiteral(red: 1, green: 0.1491314173, blue: 0, alpha: 1), #colorLiteral(red: 0, green: 0.9768045545, blue: 0, alpha: 1), #colorLiteral(red: 0.5791940689, green: 0.1280144453, blue: 0.5726861358, alpha: 1)]
         var (lenghtIndex, shapeIndex, colorIndex, solidIndex) = (1,1,1,1)
@@ -90,8 +90,6 @@ class ViewController: UIViewController {
             }
             shapeIndex += 1
         }
-        cardPictureByTag.keys.forEach{cardTags.append($0)}
-        cardTags.shuffle()
     }
     
     // MARK: - Adding cards
@@ -136,7 +134,7 @@ class ViewController: UIViewController {
 
                     guard !match() else { 
                         drawCardBorderColor(#colorLiteral(red: 0.9529411793, green: 0.6862745285, blue: 0.1333333403, alpha: 1))
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0) { [unowned self] in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [unowned self] in
                             self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
                             self.selectedCardTags.removeAll()
                         }
