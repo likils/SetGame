@@ -26,7 +26,7 @@ class ViewController: UIViewController {
     private var totalScore = 0 {
         didSet { title = "Score: \(totalScore)" }
     }
-    private var selectedCardTags = [Int]()
+    private var selectedCards = [Int]()
     private var cardTags = [Int]()
     private var cardPictureByTag = [Int: NSAttributedString]()
 
@@ -46,13 +46,14 @@ class ViewController: UIViewController {
     // MARK: - New game init
     @objc func createNewGame() {
         totalScore = 0
-        selectedCardTags.removeAll()
+        selectedCards.removeAll()
         cardTags.removeAll()
+        cardPictureByTag.keys.forEach{cardTags.append($0)}
+        cardTags.shuffle()
         mainView.hideExtraCards()
         navigationItem.rightBarButtonItem?.isEnabled = true
         toolbarItems![1].isEnabled = true
-        cardPictureByTag.keys.forEach{cardTags.append($0)}
-        cardTags.shuffle()
+        
         mainView.cards.forEach {
             $0.isEnabled = true
             $0.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
@@ -92,7 +93,7 @@ class ViewController: UIViewController {
         }
     }
     
-    // MARK: - Adding cards
+    // MARK: - Adding extra cards
     @objc func addThreeCards() {
         if mainView.hStacks[4].isHidden {
             prepareHiddenStackWithCards(atIndex: 4)
@@ -116,35 +117,35 @@ class ViewController: UIViewController {
     }
     
     // MARK: - Find 3 cards (cheat)
-    
     @objc func cheat() {
-        drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
-        selectedCardTags.removeAll()
+        drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1), forCards: selectedCards)
+        selectedCards.removeAll()
+        var findedCards = [Int]()
         let activeButtons = mainView.cards.filter{!$0.isHidden}.filter{$0.isEnabled}
         for i1 in (0..<activeButtons.count-2) {
-            selectedCardTags.insert(activeButtons[i1].tag, at: 0)
+            findedCards.insert(activeButtons[i1].tag, at: 0)
             
             for i2 in (1..<activeButtons.count-1) {
-                selectedCardTags.insert(activeButtons[i2].tag, at: 1)
-                if selectedCardTags[0] == selectedCardTags[1] { selectedCardTags.remove(at: 1); continue }
+                findedCards.insert(activeButtons[i2].tag, at: 1)
+                if findedCards[0] == findedCards[1] { findedCards.remove(at: 1); continue }
                 
                 for i3 in (2..<activeButtons.count) {
-                    selectedCardTags.insert(activeButtons[i3].tag, at: 2)
-                    if selectedCardTags[0] == selectedCardTags[2] || selectedCardTags[1] == selectedCardTags[2] { selectedCardTags.remove(at: 2); continue }
+                    findedCards.insert(activeButtons[i3].tag, at: 2)
+                    if findedCards[0] == findedCards[2] || findedCards[1] == findedCards[2] { findedCards.remove(at: 2); continue }
 
-                    guard !match() else { 
-                        drawCardBorderColor(#colorLiteral(red: 0.9529411793, green: 0.6862745285, blue: 0.1333333403, alpha: 1))
+                    guard !cardsMatched(cards: findedCards) else { 
+                        drawCardBorderColor(#colorLiteral(red: 0.9529411793, green: 0.6862745285, blue: 0.1333333403, alpha: 1), forCards: findedCards)
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [unowned self] in
-                            self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
-                            self.selectedCardTags.removeAll()
+                            self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1), forCards: findedCards)
+                            findedCards.removeAll()
                         }
                         return
                     }
-                    selectedCardTags.remove(at: 2)
+                    findedCards.remove(at: 2)
                 }
-                selectedCardTags.remove(at: 1)
+                findedCards.remove(at: 1)
             }
-            selectedCardTags.remove(at: 0)
+            findedCards.remove(at: 0)
         }
         let controllerTitle: String
         let controllerMessage: String?
@@ -154,7 +155,7 @@ class ViewController: UIViewController {
             controllerMessage = "Maybe get 3 extra cards?"
             actionTitle = "Get cards"
         } else {
-            controllerTitle = "Game is over! Your score is: \(totalScore)"
+            controllerTitle = "Game is over!\nYour score is: \(totalScore)"
             controllerMessage = nil
             actionTitle = "New Game"
             toolbarItems![1].isEnabled = false
@@ -178,55 +179,54 @@ class ViewController: UIViewController {
         switch card.layer.borderColor {
             case #colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1).cgColor:
                 card.layer.borderColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1).cgColor
-                let index = selectedCardTags.firstIndex(of: card.tag)!
-                selectedCardTags.remove(at: index)
+                let index = selectedCards.firstIndex(of: card.tag)!
+                selectedCards.remove(at: index)
             default:
                 card.layer.borderColor = #colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1).cgColor
-                selectedCardTags.append(card.tag)
+                selectedCards.append(card.tag)
                 matchCards()
         }
     }
 
     private func matchCards() {
-        guard selectedCardTags.count == 3 else { return }
-        if match() {
-            drawCardBorderColor(#colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1))
+        guard selectedCards.count == 3 else { return }
+        if cardsMatched(cards: selectedCards) {
+            drawCardBorderColor(#colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1), forCards: selectedCards)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
-                self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
-                self.selectedCardTags.removeSubrange(3...)
+                self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1), forCards: self.selectedCards)
+                self.selectedCards.removeSubrange(3...)
                 if !self.mainView.hStacks[4].isHidden {
                     self.moveExtraCards()
                 } else if !self.cardTags.isEmpty {
-                    self.selectedCardTags.forEach {
+                    self.selectedCards.forEach {
                         let card = self.view.viewWithTag($0) as! UIButton
                         self.drawNewCard(card)
                     }
                 } else {
-                    self.selectedCardTags.forEach {
+                    self.selectedCards.forEach {
                         let card = self.view.viewWithTag($0) as! UIButton
                         card.backgroundColor = .clear
                         card.setAttributedTitle(NSAttributedString(string: ""), for: .normal)
                         card.isEnabled = false
                         card.layer.borderColor = UIColor.clear.cgColor
                     }
-                    self.navigationItem.rightBarButtonItem?.isEnabled = false
                 }
                 self.totalScore += 1
-                self.selectedCardTags.removeAll()
+                self.selectedCards.removeAll()
             }
         } else {
-            drawCardBorderColor(#colorLiteral(red: 0.8078431487, green: 0.02745098062, blue: 0.3333333433, alpha: 1))
+            drawCardBorderColor(#colorLiteral(red: 0.8078431487, green: 0.02745098062, blue: 0.3333333433, alpha: 1), forCards: selectedCards)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
-                self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
-                self.selectedCardTags.removeAll()
+                self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1), forCards: self.selectedCards)
+                self.selectedCards.removeAll()
             }
         }
     }
     
-    private func match() -> Bool {
-        let picture1 = selectedCardTags[0].digits
-        let picture2 = selectedCardTags[1].digits
-        let picture3 = selectedCardTags[2].digits
+    private func cardsMatched(cards tags: [Int]) -> Bool {
+        let picture1 = tags[0].digits
+        let picture2 = tags[1].digits
+        let picture3 = tags[2].digits
         for i in 0..<picture1.count {
             if !((picture1[i]+picture2[i]+picture3[i])%3==0) {
                 return false
@@ -246,26 +246,28 @@ class ViewController: UIViewController {
         } else if !mainView.hStacks[4].isHidden {
             removeCardsFromStackAtIndex(4)
         }
-        navigationItem.rightBarButtonItem?.isEnabled = true
+        if !cardTags.isEmpty { navigationItem.rightBarButtonItem?.isEnabled = true }
     }
     
     private func removeCardsFromStackAtIndex(_ index: Int) {
         let cardTagsInStack = mainView.hStacks[index].arrangedSubviews.compactMap{$0.tag}
-        let movedCards = cardTagsInStack.filter{!selectedCardTags.contains($0)}
-        let replacedCards = selectedCardTags.filter{!cardTagsInStack.contains($0)}
+        let movedCards = cardTagsInStack.filter{!selectedCards.contains($0)}
+        let replacedCards = selectedCards.filter{!cardTagsInStack.contains($0)}
         (0..<movedCards.count).forEach {
             let movedCard = view.viewWithTag(movedCards[$0]) as! UIButton
             let replacedCard = view.viewWithTag(replacedCards[$0]) as! UIButton
             replacedCard.setAttributedTitle(movedCard.currentAttributedTitle, for: .normal)
+            movedCard.setAttributedTitle(NSAttributedString(string: ""), for: .normal)
             replacedCard.tag = movedCard.tag
+            movedCard.tag = 0
         }
         mainView.hStacks[index].isHidden = true
         mainView.hStacks[index].arrangedSubviews.forEach{ $0.isHidden = true }
     }
 
     // MARK: - Helper methods
-    private func drawCardBorderColor(_ color: UIColor) {
-        selectedCardTags.forEach {
+    private func drawCardBorderColor(_ color: UIColor, forCards tags: [Int]) {
+        tags.forEach {
             guard let button = view.viewWithTag($0) as? UIButton else { return }
             button.layer.borderColor = color.cgColor
         }
@@ -274,6 +276,7 @@ class ViewController: UIViewController {
         card.tag = cardTags.removeFirst()
         card.setAttributedTitle(cardPictureByTag[card.tag], for: .normal)
         card.layer.borderColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1).cgColor
+        if cardTags.isEmpty { navigationItem.rightBarButtonItem?.isEnabled = false }
     }
 }
 

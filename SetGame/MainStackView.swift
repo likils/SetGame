@@ -50,14 +50,10 @@ class MainStackView: UIStackView {
     }
     
     func hideExtraCards() {
-        hStacks[4].arrangedSubviews.forEach{ $0.isHidden = true }
-        hStacks[5].arrangedSubviews.forEach{ $0.isHidden = true }
-        hStacks[6].arrangedSubviews.forEach{ $0.isHidden = true }
-        hStacks[7].arrangedSubviews.forEach{ $0.isHidden = true }
-        hStacks[4].isHidden = true
-        hStacks[5].isHidden = true
-        hStacks[6].isHidden = true
-        hStacks[7].isHidden = true
+        (4..<hStacks.count).forEach{
+            hStacks[$0].arrangedSubviews.forEach{ $0.isHidden = true }
+            hStacks[$0].isHidden = true
+        }
     }
     
     // MARK: - Initialization
