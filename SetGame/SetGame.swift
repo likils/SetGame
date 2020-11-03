@@ -19,34 +19,47 @@ struct SetGame {
     // MARK: - Properties
     private var cardDeck = [Card]()
     
-    var cardDeckIsEmpty: Bool {
-        cardDeck.filter{!$0.onTable && !$0.isMatched}.isEmpty
+    var cardsOnTable: [Int] {
+        cardDeck.filter{$0.onTable}.map{$0.content}
     }
     var selectedCards: [Int] {
         cardDeck.filter{$0.isSelected}.map{$0.content}
     }
+    var cardDeckIsEmpty: Bool {
+        cardDeck.filter{!$0.onTable && !$0.isMatched}.isEmpty
+    }
     
     // MARK: - Cards movement
-    mutating func putCardOnTable() -> Int {
-        let card = cardDeck.filter{!$0.onTable && !$0.isMatched}.first!
-        let index = cardDeck.firstIndex(of: card)!
-        cardDeck[index].onTable = true
-        return card.content
+    mutating func createNewGame() {
+        for _ in 0..<4 { putThreeCardsOnTable() }
     }
-    mutating func selectCard(withContent content: Int) -> Bool {
+    
+    mutating func shuffleCards() {
+        cardDeck.shuffle()
+    }
+    
+    mutating func putThreeCardsOnTable() {
+        for _ in 0..<3 {
+            let card = cardDeck.filter{!$0.onTable && !$0.isMatched}.first!
+            let index = cardDeck.firstIndex(of: card)!
+            cardDeck[index].onTable = true
+        }
+    }
+    
+    mutating func cardIsSelected(withContent content: Int) -> Bool {
         let card = cardDeck.filter{ $0.content == content }.first!
         let index = cardDeck.firstIndex(of: card)!
         cardDeck[index].isSelected = !cardDeck[index].isSelected
         return cardDeck[index].isSelected
     }
+    
     mutating func deselectCards() {
-        let cards = selectedCards
-        cards.forEach{let _ = selectCard(withContent: $0)}
+        selectedCards.forEach { let _ = cardIsSelected(withContent: $0) }
     }
-    mutating func removeCardsFromTable() {
-        let cards = selectedCards
-        cards.forEach { tag in
-            let card = cardDeck.filter{ $0.content == tag }.first!
+    
+    mutating func removeMatchedCardsFromTable() {
+        selectedCards.forEach { content in
+            let card = cardDeck.filter{ $0.content == content }.first!
             let index = cardDeck.firstIndex(of: card)!
             cardDeck[index].isMatched = true
             cardDeck[index].onTable = false
