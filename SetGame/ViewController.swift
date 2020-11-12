@@ -40,7 +40,11 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .secondarySystemBackground
+        if #available(iOS 13.0, *) {
+            view.backgroundColor = .secondarySystemBackground
+        } else {
+            view.backgroundColor = #colorLiteral(red: 0.9490196078, green: 0.9490196078, blue: 0.968627451, alpha: 1)
+        }
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "New Game", style: .plain, target: self, action: #selector(createNewGame))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Get 3 cards", style: .plain, target: self, action: #selector(addThreeCards))
         navigationController?.isToolbarHidden = false
@@ -60,27 +64,36 @@ class ViewController: UIViewController {
         createNewGame()
     }
     
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        grid.frame = view.safeAreaLayoutGuide.layoutFrame
-        view.subviews.forEach { card in
-            card.removeFromSuperview()
-            card.removeConstraint(card.constraints.last!)
-            card.removeConstraint(card.constraints.last!)
-        }
-        cardsOnTable.enumerated().forEach { (index, tag) in
-            let card = cardSet.cardsByTag[tag]!
-            view.addSubview(card)
-            NSLayoutConstraint.activate([
-                card.topAnchor.constraint(equalTo: self.view.topAnchor, constant: self.grid[index]!.origin.y + 2),
-                card.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: self.grid[index]!.origin.x + 2),
-                card.widthAnchor.constraint(equalToConstant: self.grid[index]!.size.width - 4),
-                card.heightAnchor.constraint(equalToConstant: self.grid[index]!.size.height - 4)
-            ])
-        }
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: { _ in
+            if #available(iOS 11.0, *) {
+                self.grid.frame = self.view.safeAreaLayoutGuide.layoutFrame
+            } else {
+                self.grid.frame = self.view.bounds
+            }
+            self.view.subviews.forEach { card in
+                card.removeFromSuperview()
+                card.removeConstraint(card.constraints.last!)
+                card.removeConstraint(card.constraints.last!)
+            }
+            self.cardsOnTable.enumerated().forEach { (index, tag) in
+                let card = self.cardSet.cardsByTag[tag]!
+                self.view.addSubview(card)
+                NSLayoutConstraint.activate([
+                    card.topAnchor.constraint(equalTo: self.view.topAnchor, constant: self.grid[index]!.origin.y + 2),
+                    card.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: self.grid[index]!.origin.x + 2),
+                    card.widthAnchor.constraint(equalToConstant: self.grid[index]!.size.width - 4),
+                    card.heightAnchor.constraint(equalToConstant: self.grid[index]!.size.height - 4)
+                ])
+            }
+            self.view.layoutIfNeeded()
+        })
     }
     
     // MARK: - Action methods
     @objc func createNewGame() {
+        if setGame != nil { drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1), forCards: selectedCards) }
         totalScore = 0
         var cards = [Int]()
         cardSet.cardsByTag.keys.forEach { cards.append($0) }
@@ -242,7 +255,11 @@ class ViewController: UIViewController {
     }
     
     private func redrawUI() {
-        grid.frame = view.safeAreaLayoutGuide.layoutFrame
+        if #available(iOS 11.0, *) {
+            grid.frame = view.safeAreaLayoutGuide.layoutFrame
+        } else {
+            grid.frame = view.bounds
+        }
         grid.cellCount = cardsOnTable.count
         
         if selectedCards.count == 3 && view.subviews.count == 12 && !cardDeckIsEmpty {
@@ -258,7 +275,7 @@ class ViewController: UIViewController {
                 UIViewPropertyAnimator.runningPropertyAnimator(
                     withDuration: 1.0, delay: 0, options: [],
                     animations: {
-                        oldCard.transform = CGAffineTransform.identity.translatedBy(x: -oldCard.frame.origin.x, y: -oldCard.frame.origin.y-100)
+                        oldCard.transform = CGAffineTransform.identity.translatedBy(x: -oldCard.frame.origin.x, y: -oldCard.frame.origin.y-190)
                         oldCard.alpha = 0.3
                         
                         self.view.addSubview(newCard)
