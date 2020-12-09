@@ -71,19 +71,13 @@ final class SymbolView: UIView {
     override func draw(_ rect: CGRect) {
         let rect = CGRect(x: 1, y: 1, width: rect.width-2, height: rect.height-2)
         let path = UIBezierPath()
-        let color: UIColor
+        let color = colorType.color
+        color.setStroke()
         switch shapeType {
             case .diamond: drawDiamond(in: rect, withPath: path)
             case .squiggle: drawSquiggle(in: rect, withPath: path)
             case .oval: drawOval(in: rect, withPath: path)
         }
-        switch colorType {
-            case .red: color = colorType.color
-            case .green: color = colorType.color
-            case .purple: color = colorType.color
-        }
-        color.setStroke()
-        
         switch shadingType {
             case .solid: color.setFill(); path.fill()
             case .striped: drawStripedShading(in: rect, withPath: path) 

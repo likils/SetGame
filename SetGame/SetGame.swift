@@ -16,9 +16,9 @@ struct SetGame {
         var isMatched = false
     }
     
-    // MARK: - Properties
     private var cardDeck = [Card]()
     
+    // MARK: - Cards position
     var cardsOnTable: [Int] {
         cardDeck.filter{$0.onTable}.map{$0.content}
     }
@@ -31,7 +31,7 @@ struct SetGame {
     
     // MARK: - Cards movement
     mutating func createNewGame() {
-        for _ in 0..<4 { putThreeCardsOnTable() }
+        for index in 0..<12 { cardDeck[index].onTable = true }
     }
     
     mutating func shuffleCards() {
@@ -39,6 +39,7 @@ struct SetGame {
     }
     
     mutating func putThreeCardsOnTable() {
+        guard !cardDeckIsEmpty else { return }
         for _ in 0..<3 {
             let card = cardDeck.filter{!$0.onTable && !$0.isMatched}.first!
             let index = cardDeck.firstIndex(of: card)!
@@ -68,26 +69,20 @@ struct SetGame {
 
     // MARK: - Matches
     func findMatches() -> [Int]? {
-        let cardsOnTable = cardDeck.filter{$0.onTable}.map{$0.content}
-        var selectedCards = [Int]()
+        guard cardsOnTable.count > 2 else { return nil }
         for i1 in (0..<cardsOnTable.count-2) {
-            selectedCards.insert(cardsOnTable[i1], at: 0)
-            
             for i2 in (1..<cardsOnTable.count-1) {
-                selectedCards.insert(cardsOnTable[i2], at: 1)
-                if selectedCards[0] == selectedCards[1] { selectedCards.remove(at: 1); continue }
+                if cardsOnTable[i1] == cardsOnTable[i2] { continue }
                 
                 for i3 in (2..<cardsOnTable.count) {
-                    selectedCards.insert(cardsOnTable[i3], at: 2)
-                    if selectedCards[0] == selectedCards[2] || selectedCards[1] == selectedCards[2] { selectedCards.remove(at: 2); continue }
-                    if cardsMatched(cards: selectedCards) {
-                        return selectedCards
+                    if cardsOnTable[i1] == cardsOnTable[i3] || cardsOnTable[i2] == cardsOnTable[i3] { continue }
+                    
+                    let findedCards = [cardsOnTable[i1], cardsOnTable[i2], cardsOnTable[i3]]
+                    if cardsMatched(cards: findedCards) {
+                        return findedCards
                     }
-                    selectedCards.remove(at: 2)
                 }
-                selectedCards.remove(at: 1)
             }
-            selectedCards.remove(at: 0)
         }
         return nil
     }
@@ -97,7 +92,7 @@ struct SetGame {
         let card2 = tags[1].digits
         let card3 = tags[2].digits
         for i in 0..<card1.count {
-            if !((card1[i]+card2[i]+card3[i])%3==0) {
+            if (card1[i] + card2[i] + card3[i]) % 3 != 0 {
                 return false
             }
         }

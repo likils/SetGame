@@ -8,8 +8,8 @@
 
 import Foundation
 
-extension BinaryInteger {
+extension Int {
     var digits: [Int] {
-        String(describing: self).compactMap{ Int(String($0)) }
+        String(self).compactMap { Int(String($0)) }
     }
 }
