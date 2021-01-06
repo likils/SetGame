@@ -10,6 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
+    // MARK: View properties
     private lazy var cardSet: CardSet = {
         let cardSet = CardSet()
         cardSet.cardsByTag.values.forEach { view in
@@ -24,6 +25,7 @@ class ViewController: UIViewController {
     
     private var grid = Grid(layout: Grid.Layout.aspectRatio(0.655))
     
+    // MARK: Model properties
     private var setGame: SetGame!
     private var cardsOnTable: [Int] {
         setGame.cardsOnTable
@@ -34,11 +36,15 @@ class ViewController: UIViewController {
     private var cardDeckIsEmpty: Bool {
         setGame.cardDeckIsEmpty
     }
-    
-    private var totalScore = 0 {
-        didSet { title = "Score: \(totalScore)" }
+    private var totalScore: Int {
+        get { setGame.score }
+        set {
+            setGame.score = newValue
+            title = "Score: \(totalScore)"
+        }
     }
 
+    // MARK: Controller preparation
     override func viewDidLoad() {
         super.viewDidLoad()
         if #available(iOS 13.0, *) {
@@ -55,63 +61,67 @@ class ViewController: UIViewController {
         toolbarItems = [spacer, cheatButton, spacer]
         
         UIView.appearance().isExclusiveTouch = true // disable cards multiselecting
-        
-        let swipeGesture = UISwipeGestureRecognizer(target: self, action: #selector(addThreeCards))
-        swipeGesture.direction = .up
-        view.addGestureRecognizer(swipeGesture)
-        let shuffleGesture = UIRotationGestureRecognizer(target: self, action: #selector(shuffleCardsByGesture))
-        view.addGestureRecognizer(shuffleGesture)
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        createNewGame()
+        view.isUserInteractionEnabled = true
+        if let url = SetGame.url, let jsonData = try? Data(contentsOf: url) {
+            setGame = SetGame(json: jsonData)
+            if cardDeckIsEmpty {
+                navigationItem.rightBarButtonItem?.isEnabled = false
+                if setGame.findMatches() == nil { createNewGame(); return }
+            }
+            redrawUI()
+            title = "Score: \(totalScore)"
+        } else {
+            createNewGame()
+        }
     }
     
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        cardSet.cardsByTag.values.forEach{ card in card.subviews[0].subviews.forEach { $0.setNeedsDisplay() }} // redraw card symbols
+        // redraw cards symbols
+        cardSet.cardsByTag.values.forEach { card in
+            card.subviews[0].subviews.forEach { $0.setNeedsDisplay() }
+        }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animate(alongsideTransition: { _ in
+        coordinator.animate(
+            alongsideTransition: { _ in
             self.setupGrid()
-            self.view.subviews.forEach { self.removeCardConstraints(card: $0) }
+            self.view.subviews.forEach { self.removeCardConstraints(forCard: $0) }
             self.createCardsConstraints()
-        })
+            }
+        )
     }
     
     // MARK: - Action methods
     @objc func createNewGame() {
-        totalScore = 0
+        view.isUserInteractionEnabled = true
+        toolbarItems?[1].isEnabled = false
         var cards = [Int]()
         cardSet.cardsByTag.keys.forEach { cards.append($0) }
         cardSet.cardsByTag.values.forEach { $0.layer.borderColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1).cgColor }
         setGame = SetGame(cardDeck: cards.shuffled())
         setGame.createNewGame()
+        totalScore = 0
         redrawUI()
         navigationItem.rightBarButtonItem?.isEnabled = true
-        toolbarItems![1].isEnabled = true
     }
     
     @objc func addThreeCards() {
-        if setGame.findMatches() != nil { totalScore -= 1 }
-        setGame.putThreeCardsOnTable()
+        toolbarItems?[1].isEnabled = false
+        totalScore -= 1
+        putThreeCardsOnTable()
         redrawUI()
-        if cardDeckIsEmpty { navigationItem.rightBarButtonItem?.isEnabled = false }
-    }
-    
-    @objc func shuffleCardsByGesture(_ sender: UIRotationGestureRecognizer) {
-        switch sender.state {
-            case .ended:
-                setGame.shuffleCards()
-                redrawUI()
-            default: return
-        }
     }
     
     @objc func cheat() {
+        toolbarItems?[1].isEnabled = false
+        view.isUserInteractionEnabled = false
         drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1), forCards: selectedCards)
         setGame.deselectCards()
         if let findedCards = setGame.findMatches() {
@@ -136,34 +146,12 @@ class ViewController: UIViewController {
                                     self.totalScore -= 4
                                     self.matchCards()
                                 }
-                            }   
+                            }
                         )
                     }
                 )
             }
-            return
         }
-        let controllerTitle: String
-        let controllerMessage: String?
-        let actionTitle: String
-        if !cardDeckIsEmpty {
-            controllerTitle = "Not found any matches!"
-            controllerMessage = "Maybe get 3 extra cards?"
-            actionTitle = "Get cards"
-        } else {
-            controllerTitle = "Game is over!\nYour score is: \(totalScore)"
-            controllerMessage = nil
-            actionTitle = "New Game"
-            toolbarItems![1].isEnabled = false
-        }
-        let alertController = UIAlertController(title: controllerTitle, message: controllerMessage, preferredStyle: .alert)
-        let action = UIAlertAction(title: actionTitle, style: .default) { [unowned self] _ in
-            self.cardDeckIsEmpty ? self.createNewGame() : self.addThreeCards()
-        }
-        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-        alertController.addAction(action)
-        alertController.addAction(cancel)
-        present(alertController, animated: true, completion: nil)
     }
     
     @objc func cardTapped(_ sender: UILongPressGestureRecognizer) {
@@ -194,44 +182,41 @@ class ViewController: UIViewController {
         matchCards()
     }
     
-    // MARK: - Helper methods
+    // MARK: - Cards movement
     private func matchCards() {
         guard selectedCards.count == 3 else { return }
         if setGame.cardsMatched(cards: selectedCards) {
+            toolbarItems?[1].isEnabled = false
             totalScore += 3
             drawCardBorderColor(#colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1), forCards: selectedCards)
             setGame.removeMatchedCardsFromTable()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1), forCards: self.selectedCards)
-                if self.cardDeckIsEmpty {
-                    self.navigationItem.rightBarButtonItem?.isEnabled = false
-                    if self.setGame.findMatches() == nil { self.cheat() }
-                } else if self.cardsOnTable.count < 12 {
-                    self.setGame.putThreeCardsOnTable()
-                }
+                if self.cardsOnTable.count < 12 { self.putThreeCardsOnTable() }
                 self.redrawUI()
                 self.setGame.deselectCards()
             }
         } else {
             totalScore -= 1
             drawCardBorderColor(#colorLiteral(red: 0.8078431487, green: 0.02745098062, blue: 0.3333333433, alpha: 1), forCards: selectedCards)
-            selectedCards.forEach { self.view.viewWithTag($0)!.transform = CGAffineTransform(translationX: -3, y: 0) }
+            selectedCards.forEach { self.view.viewWithTag($0)?.transform = CGAffineTransform(translationX: -3, y: 0) }
             UIViewPropertyAnimator.runningPropertyAnimator(
                 withDuration: 0.07, delay: 0, options: [],
                 animations: {
-                    self.selectedCards.forEach { self.view.viewWithTag($0)!.transform = CGAffineTransform(translationX: 3, y: 0) }
+                    self.selectedCards.forEach { self.view.viewWithTag($0)?.transform = CGAffineTransform(translationX: 3, y: 0) }
                 },
                 completion: { _ in
                     UIViewPropertyAnimator.runningPropertyAnimator(
                         withDuration: 0.07, delay: 0, options: [],
                         animations: {
-                            self.selectedCards.forEach { self.view.viewWithTag($0)!.transform = CGAffineTransform(translationX: -3, y: 0) }
+                            self.selectedCards.forEach { self.view.viewWithTag($0)?.transform = CGAffineTransform(translationX: -3, y: 0) }
                         },
                         completion: { _ in
                             UIViewPropertyAnimator.runningPropertyAnimator(
                                 withDuration: 0.07, delay: 0, options: [],
                                 animations: {
-                                    self.selectedCards.forEach { self.view.viewWithTag($0)!.transform = CGAffineTransform.identity }
+                                    self.selectedCards.forEach { self.view.viewWithTag($0)?.transform = CGAffineTransform.identity }
                                 },
                                 completion: { _ in 
                                     self.drawCardBorderColor(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1), forCards: self.selectedCards)
@@ -244,11 +229,40 @@ class ViewController: UIViewController {
             )
         }
     }
-
-    private func drawCardBorderColor(_ color: UIColor, forCards cards: [Int]) {
-        cards.forEach {
-            view.viewWithTag($0)?.layer.borderColor = color.cgColor
+    
+    private func putThreeCardsOnTable() {
+        setGame.putThreeCardsOnTable()
+        if cardDeckIsEmpty { navigationItem.rightBarButtonItem?.isEnabled = false }
+    }
+    
+    private func checkMatchesOnTable() {
+        if cardDeckIsEmpty && setGame.findMatches() == nil {
+            gameOver()
+        } else if setGame.findMatches() != nil {
+            toolbarItems?[1].isEnabled = true
+            view.isUserInteractionEnabled = true
+        } else {
+            putThreeCardsOnTable()
+            setGame.shuffleCards()
+            redrawUI()
         }
+    }
+    
+    private func gameOver() {
+        let alertController = UIAlertController(title: "Game is over!\nYour score is: \(totalScore)", message: nil, preferredStyle: .alert)
+        let action = UIAlertAction(title: "New Game", style: .default) { _ in
+            self.createNewGame()
+        }
+        alertController.addAction(action)
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alertController, animated: true, completion: nil)
+        view.isUserInteractionEnabled = false
+        toolbarItems?[1].isEnabled = false
+    }
+
+    // MARK: - Redrawings
+    private func drawCardBorderColor(_ color: UIColor, forCards cards: [Int]) {
+        cards.forEach { view.viewWithTag($0)?.layer.borderColor = color.cgColor }
     }
     
     private func redrawUI() {
@@ -265,7 +279,7 @@ class ViewController: UIViewController {
 //                newCard.frame.origin = CGPoint(x: oldCardFrame.midX, y: view.bounds.minY - 100)
                 newCard.alpha = 0
                 UIViewPropertyAnimator.runningPropertyAnimator(
-                    withDuration: 1.0, delay: 0, options: [],
+                    withDuration: 0.8, delay: 0, options: [],
                     animations: {
                         oldCard.transform = CGAffineTransform.identity.translatedBy(x: -oldCard.frame.origin.x, y: -oldCard.frame.origin.y-190)
                         oldCard.alpha = 0.3
@@ -280,7 +294,7 @@ class ViewController: UIViewController {
                     },
                     completion: {_ in
                         UIViewPropertyAnimator.runningPropertyAnimator(
-                            withDuration: 1.0, delay: 0, options: [.transitionFlipFromLeft],
+                            withDuration: 0.6, delay: 0, options: [.transitionFlipFromLeft],
                             animations: {
 //                                self.view.layoutIfNeeded()
 //                                newCard.subviews[0].subviews.forEach { $0.setNeedsDisplay() }
@@ -289,7 +303,8 @@ class ViewController: UIViewController {
                             completion: {_ in
                                 oldCard.transform = CGAffineTransform.identity
                                 oldCard.alpha = 1
-                                self.removeCardConstraints(card: oldCard)
+                                self.removeCardConstraints(forCard: oldCard)
+                                self.checkMatchesOnTable()
                             }
                         )
                     }
@@ -297,7 +312,7 @@ class ViewController: UIViewController {
             }
         } else {
             UIViewPropertyAnimator.runningPropertyAnimator(
-                withDuration: 1.0, delay: 0, options: [],
+                withDuration: 0.8, delay: 0, options: [],
                 animations: {
                     self.view.subviews.forEach { card in
                         if self.selectedCards.count == 3 && self.selectedCards.contains(card.tag) {
@@ -310,13 +325,16 @@ class ViewController: UIViewController {
                     self.view.subviews.forEach { card in
                         card.transform = CGAffineTransform.identity
                         card.alpha = 1
-                        self.removeCardConstraints(card: card)
+                        self.removeCardConstraints(forCard: card)
                     }
-                    
                     UIViewPropertyAnimator.runningPropertyAnimator(
-                        withDuration: 1.0, delay: 0, options: [],
+                        withDuration: 0.8, delay: 0, options: [],
                         animations: {
                             self.createCardsConstraints()
+                            self.drawCardBorderColor(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1), forCards: self.selectedCards) // if cards saved pressed
+                        },
+                        completion: {_ in
+                            self.checkMatchesOnTable()
                         }
                     )
                 }
@@ -324,6 +342,7 @@ class ViewController: UIViewController {
         }
     }
     
+    // MARK: - Constraints rearrangement
     private func setupGrid() {
         if #available(iOS 11.0, *) {
             grid.frame = view.safeAreaLayoutGuide.layoutFrame
@@ -347,11 +366,9 @@ class ViewController: UIViewController {
         view.layoutIfNeeded()
     }
     
-    private func removeCardConstraints(card: UIView) {
+    private func removeCardConstraints(forCard card: UIView) {
         card.removeFromSuperview()
         card.removeConstraint(card.constraints.last!)
         card.removeConstraint(card.constraints.last!)
     }
 }
-
-

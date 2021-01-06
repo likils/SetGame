@@ -8,8 +8,8 @@
 
 import Foundation
 
-struct SetGame {
-    private struct Card: Equatable {
+struct SetGame: Codable {
+    private struct Card: Equatable, Codable {
         var content: Int
         var onTable = false
         var isSelected = false
@@ -17,6 +17,7 @@ struct SetGame {
     }
     
     private var cardDeck = [Card]()
+    var score = 0
     
     // MARK: - Cards position
     var cardsOnTable: [Int] {
@@ -32,10 +33,12 @@ struct SetGame {
     // MARK: - Cards movement
     mutating func createNewGame() {
         for index in 0..<12 { cardDeck[index].onTable = true }
+        saveGame()
     }
     
     mutating func shuffleCards() {
         cardDeck.shuffle()
+        saveGame()
     }
     
     mutating func putThreeCardsOnTable() {
@@ -45,12 +48,14 @@ struct SetGame {
             let index = cardDeck.firstIndex(of: card)!
             cardDeck[index].onTable = true
         }
+        saveGame()
     }
     
     mutating func cardIsSelected(withContent content: Int) -> Bool {
         let card = cardDeck.filter{ $0.content == content }.first!
         let index = cardDeck.firstIndex(of: card)!
         cardDeck[index].isSelected = !cardDeck[index].isSelected
+        saveGame()
         return cardDeck[index].isSelected
     }
     
@@ -65,6 +70,7 @@ struct SetGame {
             cardDeck[index].isMatched = true
             cardDeck[index].onTable = false
         }
+        saveGame()
     }
 
     // MARK: - Matches
@@ -99,8 +105,45 @@ struct SetGame {
         return true
     }
     
-    // MARK: - Init
+    // MARK: - Initialization
     init(cardDeck content: [Int]) {
         content.forEach{ cardDeck.append(Card(content: $0)) }
+    }
+    
+    init?(json: Data) {
+        if let newValue = try? JSONDecoder().decode(SetGame.self, from: json) {
+            self = newValue
+        } else {
+            return nil
+        }
+    }
+    
+    // MARK: - Saving
+    static var url: URL? {
+        do {
+            return try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent("SetGame.json")
+        } catch {
+            print("Couldn't create URL \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    private var json: Data? {
+        do {
+            return try JSONEncoder().encode(self)
+        } catch {
+            print("Could not encode: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    private func saveGame() {
+        if let json = json, let url = SetGame.url {
+            do {
+                try json.write(to: url)
+            } catch {
+                print("Couldn't save: \(error.localizedDescription)")
+            }
+        }
     }
 }
