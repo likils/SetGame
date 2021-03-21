@@ -2,8 +2,8 @@
 //  ViewController.swift
 //  SetGame
 //
-//  Created by Nik on 19.10.2020.
-//  Copyright © 2020 Nik. All rights reserved.
+//  Created by likils on 19.10.2020.
+//  Copyright © 2020 likils. All rights reserved.
 //
 
 import UIKit
@@ -89,6 +89,9 @@ class ViewController: UIViewController {
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
+        if setGame == nil {
+            return          // bugfix on Mac with m1 (viewWillTransition() calls before viewDidAppear())
+        }
         coordinator.animate(
             alongsideTransition: { _ in
             self.setupGrid()
@@ -141,7 +144,7 @@ class ViewController: UIViewController {
                                 card.transform = CGAffineTransform.identity
                             },
                             completion: { _ in
-                                let _ = self.setGame.cardIsSelected(withContent: tag)
+                                let _ = self.setGame.isCardSelected(withContent: tag)
                                 if self.selectedCards.count == 3 {
                                     self.totalScore -= 4
                                     self.matchCards()
@@ -155,8 +158,12 @@ class ViewController: UIViewController {
     }
     
     @objc func cardTapped(_ sender: UILongPressGestureRecognizer) {
-        guard selectedCards.count < 3 else { return }
-        let card = sender.view!
+        guard
+            selectedCards.count < 3,
+            let card = sender.view
+        else {
+            return
+        }
         if sender.state == .began {
             UIView.transition(
                 with: card, duration: 0.1, options: [],
@@ -169,7 +176,7 @@ class ViewController: UIViewController {
             UIView.transition(
                 with: card, duration: 0.1, options: [],
                 animations: {
-                    switch self.setGame.cardIsSelected(withContent: card.tag) {
+                    switch self.setGame.isCardSelected(withContent: card.tag) {
                         case false:
                             card.layer.borderColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1).cgColor
                         case true:
@@ -281,7 +288,7 @@ class ViewController: UIViewController {
                 UIViewPropertyAnimator.runningPropertyAnimator(
                     withDuration: 0.8, delay: 0, options: [],
                     animations: {
-                        oldCard.transform = CGAffineTransform.identity.translatedBy(x: -oldCard.frame.origin.x, y: -oldCard.frame.origin.y-190)
+                        oldCard.transform = CGAffineTransform.identity.translatedBy(x: -oldCard.frame.origin.x, y: -oldCard.frame.origin.y-210)
                         oldCard.alpha = 0.3
                         
                         self.view.addSubview(newCard)
@@ -316,7 +323,8 @@ class ViewController: UIViewController {
                 animations: {
                     self.view.subviews.forEach { card in
                         if self.selectedCards.count == 3 && self.selectedCards.contains(card.tag) {
-                            card.transform = CGAffineTransform.identity.translatedBy(x: -card.frame.origin.x, y: -card.frame.origin.y-100)
+                            self.view.bringSubviewToFront(card)
+                            card.transform = CGAffineTransform.identity.translatedBy(x: -card.frame.origin.x, y: -card.frame.origin.y-210)
                             card.alpha = 0.3
                         }
                     }

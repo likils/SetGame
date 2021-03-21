@@ -2,8 +2,8 @@
 //  SymbolView.swift
 //  SetGame
 //
-//  Created by Nik on 29.10.2020.
-//  Copyright © 2020 Nik. All rights reserved.
+//  Created by likils on 29.10.2020.
+//  Copyright © 2020 likils. All rights reserved.
 //
 
 import UIKit

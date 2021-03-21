@@ -2,8 +2,8 @@
 //  SetGame.swift
 //  SetGame
 //
-//  Created by Nik on 20.10.2020.
-//  Copyright © 2020 Nik. All rights reserved.
+//  Created by likils on 20.10.2020.
+//  Copyright © 2020 likils. All rights reserved.
 //
 
 import Foundation
@@ -44,31 +44,36 @@ struct SetGame: Codable {
     mutating func putThreeCardsOnTable() {
         guard !cardDeckIsEmpty else { return }
         for _ in 0..<3 {
-            let card = cardDeck.filter{!$0.onTable && !$0.isMatched}.first!
-            let index = cardDeck.firstIndex(of: card)!
-            cardDeck[index].onTable = true
+            if let card = cardDeck.filter({ !$0.onTable && !$0.isMatched }).first,
+               let index = cardDeck.firstIndex(of: card) {
+                cardDeck[index].onTable = true
+               }
         }
         saveGame()
     }
     
-    mutating func cardIsSelected(withContent content: Int) -> Bool {
-        let card = cardDeck.filter{ $0.content == content }.first!
-        let index = cardDeck.firstIndex(of: card)!
-        cardDeck[index].isSelected = !cardDeck[index].isSelected
-        saveGame()
-        return cardDeck[index].isSelected
+    mutating func isCardSelected(withContent content: Int) -> Bool {
+        if let card = cardDeck.filter({ $0.content == content }).first,
+           let index = cardDeck.firstIndex(of: card) {
+            cardDeck[index].isSelected = !cardDeck[index].isSelected
+            saveGame()
+            return cardDeck[index].isSelected
+        } else {
+            return false
+        }
     }
     
     mutating func deselectCards() {
-        selectedCards.forEach { let _ = cardIsSelected(withContent: $0) }
+        selectedCards.forEach { let _ = isCardSelected(withContent: $0) }
     }
     
     mutating func removeMatchedCardsFromTable() {
         selectedCards.forEach { content in
-            let card = cardDeck.filter{ $0.content == content }.first!
-            let index = cardDeck.firstIndex(of: card)!
-            cardDeck[index].isMatched = true
-            cardDeck[index].onTable = false
+            if let card = cardDeck.filter({ $0.content == content }).first,
+               let index = cardDeck.firstIndex(of: card) {
+                cardDeck[index].isMatched = true
+                cardDeck[index].onTable = false
+            }
         }
         saveGame()
     }
