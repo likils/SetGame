@@ -130,7 +130,7 @@ class ViewController: UIViewController {
         if let findedCards = setGame.findMatches() {
             drawCardBorderColor(#colorLiteral(red: 0.9529411793, green: 0.6862745285, blue: 0.1333333403, alpha: 1), forCards: findedCards)
             findedCards.forEach { tag in
-                let card = view.viewWithTag(tag)!
+                guard let card = view.viewWithTag(tag) else { return }
                 card.transform = CGAffineTransform.identity.scaledBy(x: 0.98, y: 0.98)
                 UIView.transition(
                     with: card, duration: 0.4, options: [],
@@ -278,8 +278,10 @@ class ViewController: UIViewController {
         if selectedCards.count == 3 && view.subviews.count == 12 && !cardDeckIsEmpty {
             let newlyAddedCards = cardsOnTable.filter { view.viewWithTag($0) == nil }
             newlyAddedCards.enumerated().forEach {
-                let oldCard = view.viewWithTag(selectedCards[$0])!
-                let newCard = cardSet.cardsByTag[$1]!
+                guard let oldCard = view.viewWithTag(selectedCards[$0]), 
+                      let newCard = cardSet.cardsByTag[$1]
+                else { return }
+                
                 let oldCardFrame = oldCard.frame
                 
                 view.bringSubviewToFront(oldCard)
@@ -362,7 +364,7 @@ class ViewController: UIViewController {
     
     private func createCardsConstraints() {
         cardsOnTable.enumerated().forEach { (index, tag) in
-            let card = cardSet.cardsByTag[tag]!
+            guard let card = cardSet.cardsByTag[tag] else { return }
             view.addSubview(card)
             NSLayoutConstraint.activate([
                 card.topAnchor.constraint(equalTo: view.topAnchor, constant: grid[index]!.origin.y + 2),

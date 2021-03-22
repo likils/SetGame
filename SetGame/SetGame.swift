@@ -82,12 +82,8 @@ struct SetGame: Codable {
     func findMatches() -> [Int]? {
         guard cardsOnTable.count > 2 else { return nil }
         for i1 in (0..<cardsOnTable.count-2) {
-            for i2 in (1..<cardsOnTable.count-1) {
-                if cardsOnTable[i1] == cardsOnTable[i2] { continue }
-                
-                for i3 in (2..<cardsOnTable.count) {
-                    if cardsOnTable[i1] == cardsOnTable[i3] || cardsOnTable[i2] == cardsOnTable[i3] { continue }
-                    
+            for i2 in (i1+1..<cardsOnTable.count-1) {
+                for i3 in (i2+1..<cardsOnTable.count) {
                     let findedCards = [cardsOnTable[i1], cardsOnTable[i2], cardsOnTable[i3]]
                     if cardsMatched(cards: findedCards) {
                         return findedCards
