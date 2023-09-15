@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 53;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -48,7 +48,8 @@
 		2410DE4B253E1B07009D9DE6 = {
 			isa = PBXGroup;
 			children = (
-				2410DE56253E1B07009D9DE6 /* SetGame */,
+				2410DE56253E1B07009D9DE6 /* Sources */,
+				B2FE54792AB35FB70011C23C /* Resources */,
 				2410DE55253E1B07009D9DE6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,30 +62,69 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		2410DE56253E1B07009D9DE6 /* SetGame */ = {
+		2410DE56253E1B07009D9DE6 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				24E01D2F255DA4F500A46F6D /* AppDelegate.swift */,
-				24E01D31255DA50000A46F6D /* SceneDelegate.swift */,
-				249C9B162545AD44009DF57B /* Global Extensions */,
-				2472CAFD253ED656001615F4 /* SetGame.swift */,
-				2410DE5B253E1B07009D9DE6 /* ViewController.swift */,
-				24F962A6254DDD6900B6D04C /* Grid.swift */,
-				24BE954B25415DC40097D9D8 /* CardSet.swift */,
-				241CAA6A254ABD57002544D1 /* SymbolView.swift */,
-				2410DE60253E1B0D009D9DE6 /* Assets.xcassets */,
-				2410DE62253E1B0D009D9DE6 /* LaunchScreen.storyboard */,
-				2410DE65253E1B0D009D9DE6 /* Info.plist */,
+				B2FE547A2AB410F10011C23C /* Application */,
+				B2FE54772AB35EF80011C23C /* Modules */,
+				B2FE54782AB35F5D0011C23C /* Views */,
+				B2FE547B2AB413500011C23C /* Helpers */,
+				249C9B162545AD44009DF57B /* Extensions */,
 			);
-			path = SetGame;
+			path = Sources;
 			sourceTree = "<group>";
 		};
-		249C9B162545AD44009DF57B /* Global Extensions */ = {
+		249C9B162545AD44009DF57B /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
 				249C9B142545AC16009DF57B /* IntToArray.swift */,
 			);
-			path = "Global Extensions";
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		B2FE54772AB35EF80011C23C /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				2410DE5B253E1B07009D9DE6 /* ViewController.swift */,
+				2472CAFD253ED656001615F4 /* SetGame.swift */,
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		B2FE54782AB35F5D0011C23C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				241CAA6A254ABD57002544D1 /* SymbolView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B2FE54792AB35FB70011C23C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				2410DE65253E1B0D009D9DE6 /* Info.plist */,
+				2410DE60253E1B0D009D9DE6 /* Assets.xcassets */,
+				2410DE62253E1B0D009D9DE6 /* LaunchScreen.storyboard */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B2FE547A2AB410F10011C23C /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				24E01D2F255DA4F500A46F6D /* AppDelegate.swift */,
+				24E01D31255DA50000A46F6D /* SceneDelegate.swift */,
+			);
+			path = Application;
+			sourceTree = "<group>";
+		};
+		B2FE547B2AB413500011C23C /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				24BE954B25415DC40097D9D8 /* CardSet.swift */,
+				24F962A6254DDD6900B6D04C /* Grid.swift */,
+			);
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -113,8 +153,9 @@
 		2410DE4C253E1B07009D9DE6 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1170;
-				LastUpgradeCheck = 1170;
+				LastUpgradeCheck = 1430;
 				ORGANIZATIONNAME = Nik;
 				TargetAttributes = {
 					2410DE53253E1B07009D9DE6 = {
@@ -208,6 +249,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -232,7 +274,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -268,6 +310,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -286,7 +329,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -301,13 +344,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 72AKTAX57S;
-				INFOPLIST_FILE = SetGame/Info.plist;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Set;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.card-games";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = likils.SetGame;
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.game.set;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -319,13 +366,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 72AKTAX57S;
-				INFOPLIST_FILE = SetGame/Info.plist;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Set;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.card-games";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = likils.SetGame;
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.game.set;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
