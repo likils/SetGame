@@ -2,8 +2,8 @@
 //  CardSet.swift
 //  SetGame
 //
-//  Created by likils on 22.10.2020.
-//  Copyright © 2020 likils. All rights reserved.
+//  Created by @likils on 22.10.2020.
+//  Copyright © 2020 nkolesnikov@hotmail.com. All rights reserved.
 //
 
 import UIKit

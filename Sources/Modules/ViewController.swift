@@ -2,8 +2,8 @@
 //  ViewController.swift
 //  SetGame
 //
-//  Created by likils on 19.10.2020.
-//  Copyright © 2020 likils. All rights reserved.
+//  Created by @likils on 19.10.2020.
+//  Copyright © 2020 nkolesnikov@hotmail.com. All rights reserved.
 //
 
 import UIKit
@@ -23,7 +23,7 @@ class ViewController: UIViewController {
         return cardSet
     }()
     
-    private var grid = Grid(layout: Grid.Layout.aspectRatio(0.655))
+    private var grid = CellsGrid(layout: CellsGrid.Layout.aspectRatio(0.655))
     
     // MARK: Model properties
     private var setGame: SetGame!
