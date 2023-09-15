@@ -29,114 +29,146 @@
 
 import UIKit
 
-struct Grid
-{
+struct Grid {
+
     enum Layout {
         case fixedCellSize(CGSize)
         case dimensions(rowCount: Int, columnCount: Int)
         case aspectRatio(CGFloat)
     }
-    
-    var layout: Layout { didSet { recalculate() } }
-    
-    var frame: CGRect { didSet { recalculate() } }
-    
-    init(layout: Layout, frame: CGRect = CGRect.zero) {
+
+    init(layout: Layout, frame: CGRect = .zero) {
         self.frame = frame
         self.layout = layout
         recalculate()
     }
+
+    var layout: Layout {
+        didSet {
+            recalculate()
+        }
+    }
+    
+    var frame: CGRect {
+        didSet {
+            recalculate()
+        }
+    }
+
+    private var cellCountForAspectRatioLayout = 0 {
+        didSet {
+            recalculate()
+        }
+    }
+
+    private var cellFrames = [CGRect]()
+    private var calculatedDimensions = (rowCount: 0, columnCount: 0)
     
     subscript(row: Int, column: Int) -> CGRect? {
         return self[row * dimensions.columnCount + column]
     }
-    
+
     subscript(index: Int) -> CGRect? {
         return index < cellFrames.count ? cellFrames[index] : nil
     }
-    
+
     var cellCount: Int {
         get {
             switch layout {
-            case .aspectRatio: return cellCountForAspectRatioLayout
-            case .fixedCellSize, .dimensions: return calculatedDimensions.rowCount * calculatedDimensions.columnCount
+
+                case .aspectRatio:
+                    return cellCountForAspectRatioLayout
+
+                case .fixedCellSize, .dimensions:
+                    return calculatedDimensions.rowCount * calculatedDimensions.columnCount
             }
         }
-        set { cellCountForAspectRatioLayout = newValue }
+        set {
+            cellCountForAspectRatioLayout = newValue
+        }
     }
-    
+
     var cellSize: CGSize {
-        get { return cellFrames.first?.size ?? CGSize.zero }
-        set { layout = .fixedCellSize(newValue) }
+        get {
+            cellFrames.first?.size ?? .zero
+        }
+        set {
+            layout = .fixedCellSize(newValue)
+        }
     }
-    
+
     var dimensions: (rowCount: Int, columnCount: Int) {
-        get { return calculatedDimensions }
-        set { layout = .dimensions(rowCount: newValue.rowCount, columnCount: newValue.columnCount) }
+        get {
+            calculatedDimensions
+        }
+        set {
+            layout = .dimensions(rowCount: newValue.rowCount, columnCount: newValue.columnCount)
+        }
     }
-    
+
     var aspectRatio: CGFloat {
         get {
             switch layout {
-            case .aspectRatio(let aspectRatio):
-                return aspectRatio
-            case .fixedCellSize(let size):
-                return size.height > 0 ? size.width / size.height : 0.0
-            case .dimensions(let rowCount, let columnCount):
-                if rowCount > 0 && columnCount > 0 && frame.size.width > 0 {
-                    return (frame.size.width / CGFloat(columnCount)) / (frame.size.width / CGFloat(rowCount))
-                } else {
-                    return 0.0
-                }
+
+                case .aspectRatio(let aspectRatio):
+                    return aspectRatio
+
+                case .fixedCellSize(let size):
+                    return size.height > 0 ? (size.width / size.height) : .zero
+
+                case .dimensions(let rowCount, let columnCount):
+                    if (rowCount > 0) && (columnCount > 0) && (frame.size.width > 0) {
+                        return (frame.size.width / CGFloat(columnCount)) / (frame.size.width / CGFloat(rowCount))
+                    } else {
+                        return .zero
+                    }
             }
         }
-        set { layout = .aspectRatio(newValue) }
+        set {
+            layout = .aspectRatio(newValue)
+        }
     }
-    
-    private var cellFrames = [CGRect]()
-    private var cellCountForAspectRatioLayout = 0 { didSet { recalculate() } }
-    private var calculatedDimensions: (rowCount: Int, columnCount: Int) = (0, 0)
     
     private mutating func recalculate() {
         switch layout {
-        case .fixedCellSize(let cellSize):
-            if cellSize.width > 0 && cellSize.height > 0 {
-                calculatedDimensions.rowCount = Int(frame.size.height / cellSize.height)
-                calculatedDimensions.columnCount = Int(frame.size.width / cellSize.width)
+            case .fixedCellSize(let cellSize):
+                if cellSize.width > 0 && cellSize.height > 0 {
+                    calculatedDimensions.rowCount = Int(frame.size.height / cellSize.height)
+                    calculatedDimensions.columnCount = Int(frame.size.width / cellSize.width)
+                    updateCellFrames(to: cellSize)
+                } else {
+                    assert(false, "Grid: for fixedCellSize layout, cellSize height and width must be positive numbers")
+                    calculatedDimensions = (0, 0)
+                    cellFrames.removeAll()
+                }
+            case .dimensions(let rowCount, let columnCount):
+                if columnCount > 0 && rowCount > 0 {
+                    calculatedDimensions.rowCount = rowCount
+                    calculatedDimensions.columnCount = columnCount
+                    let cellSize = CGSize(width: frame.size.width/CGFloat(columnCount), height: frame.size.height/CGFloat(rowCount))
+                    updateCellFrames(to: cellSize)
+                } else {
+                    assert(false, "Grid: for dimensions layout, rowCount and columnCount must be positive numbers")
+                    calculatedDimensions = (0, 0)
+                    cellFrames.removeAll()
+                }
+            case .aspectRatio:
+                assert(aspectRatio > 0, "Grid: for aspectRatio layout, aspectRatio must be a positive number")
+                let cellSize = largestCellSizeThatFitsAspectRatio()
+                if cellSize.area > 0 {
+                    calculatedDimensions.columnCount = Int(frame.size.width / cellSize.width)
+                    calculatedDimensions.rowCount = (cellCount + calculatedDimensions.columnCount - 1) / calculatedDimensions.columnCount
+                } else {
+                    calculatedDimensions = (0, 0)
+                }
                 updateCellFrames(to: cellSize)
-            } else {
-                assert(false, "Grid: for fixedCellSize layout, cellSize height and width must be positive numbers")
-                calculatedDimensions = (0, 0)
-                cellFrames.removeAll()
-            }
-        case .dimensions(let rowCount, let columnCount):
-            if columnCount > 0 && rowCount > 0 {
-                calculatedDimensions.rowCount = rowCount
-                calculatedDimensions.columnCount = columnCount
-                let cellSize = CGSize(width: frame.size.width/CGFloat(columnCount), height: frame.size.height/CGFloat(rowCount))
-                updateCellFrames(to: cellSize)
-            } else {
-                assert(false, "Grid: for dimensions layout, rowCount and columnCount must be positive numbers")
-                calculatedDimensions = (0, 0)
-                cellFrames.removeAll()
-            }
-        case .aspectRatio:
-            assert(aspectRatio > 0, "Grid: for aspectRatio layout, aspectRatio must be a positive number")
-            let cellSize = largestCellSizeThatFitsAspectRatio()
-            if cellSize.area > 0 {
-                calculatedDimensions.columnCount = Int(frame.size.width / cellSize.width)
-                calculatedDimensions.rowCount = (cellCount + calculatedDimensions.columnCount - 1) / calculatedDimensions.columnCount
-            } else {
-                calculatedDimensions = (0, 0)
-            }
-            updateCellFrames(to: cellSize)
-            break
+                break
         }
     }
-    
+
     private mutating func updateCellFrames(to cellSize: CGSize) {
         cellFrames.removeAll()
-        
+
         let boundingSize = CGSize(
             width: CGFloat(dimensions.columnCount) * cellSize.width,
             height: CGFloat(dimensions.rowCount) * cellSize.height
@@ -151,7 +183,7 @@ struct Grid
 
         if cellCount > 0 {
             for _ in 0..<cellCount {
-               cellFrames.append(CGRect(origin: origin, size: cellSize))
+                cellFrames.append(CGRect(origin: origin, size: cellSize))
                 origin.x += cellSize.width
                 if round(origin.x) > round(frame.maxX - cellSize.width) {
                     origin.x = frame.origin.x + offset.dx
